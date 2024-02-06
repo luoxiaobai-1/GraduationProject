@@ -62,3 +62,92 @@ HTTPS加密：使用HTTPS协议保障数据传输的安全性。
 内容审核：管理员可以审核和管理帖子、评论等内容。
 权限管理：管理员可以修改用户的角色和权限。
 数据备份和恢复：定期进行数据库备份，以防数据丢失。
+
+sql脚本
+-- 创建用户管理相关表
+CREATE TABLE user (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL COMMENT '用户名',
+    password VARCHAR(255) NOT NULL COMMENT '密码',
+    email VARCHAR(255) COMMENT '电子邮件',
+    avatar_url VARCHAR(255) COMMENT '用户头像URL',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    is_deleted CHAR(1) DEFAULT '0' COMMENT '逻辑删除标志: 0-未删除, 1-已删除'
+) COMMENT='用户表';
+
+CREATE TABLE user_role (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL COMMENT '角色名称',
+    is_deleted CHAR(1) DEFAULT '0' COMMENT '逻辑删除标志: 0-未删除, 1-已删除'
+) COMMENT='用户角色表';
+
+CREATE TABLE user_user_role (
+    user_id BIGINT COMMENT '用户ID',
+    role_id BIGINT COMMENT '角色ID',
+    PRIMARY KEY (user_id, role_id),
+    FOREIGN KEY (user_id) REFERENCES user(id),
+    FOREIGN KEY (role_id) REFERENCES user_role(id),
+    is_deleted CHAR(1) DEFAULT '0' COMMENT '逻辑删除标志: 0-未删除, 1-已删除'
+) COMMENT='用户与角色关联表';
+
+-- 创建帖子管理相关表
+CREATE TABLE forum_post (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL COMMENT '帖子标题',
+    content TEXT COMMENT '帖子内容',
+    user_id BIGINT COMMENT '发布用户ID',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    is_deleted CHAR(1) DEFAULT '0' COMMENT '逻辑删除标志: 0-未删除, 1-已删除'
+) COMMENT='帖子表';
+
+CREATE TABLE comment (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    content TEXT COMMENT '评论内容',
+    user_id BIGINT COMMENT '评论用户ID',
+    post_id BIGINT COMMENT '关联帖子ID',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    is_deleted CHAR(1) DEFAULT '0' COMMENT '逻辑删除标志: 0-未删除, 1-已删除'
+) COMMENT='评论表';
+
+-- 创建权限管理相关表
+CREATE TABLE permission (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL COMMENT '权限名称',
+    is_deleted CHAR(1) DEFAULT '0' COMMENT '逻辑删除标志: 0-未删除, 1-已删除'
+) COMMENT='权限表';
+
+CREATE TABLE role_permission (
+    role_id BIGINT COMMENT '角色ID',
+    permission_id BIGINT COMMENT '权限ID',
+    PRIMARY KEY (role_id, permission_id),
+    FOREIGN KEY (role_id) REFERENCES user_role(id),
+    FOREIGN KEY (permission_id) REFERENCES permission(id),
+    is_deleted CHAR(1) DEFAULT '0' COMMENT '逻辑删除标志: 0-未删除, 1-已删除'
+) COMMENT='角色与权限关联表';
+
+-- 创建付费用户相关表
+CREATE TABLE membership_level (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL COMMENT '会员等级名称',
+    description TEXT COMMENT '会员等级描述',
+    price DECIMAL(10, 2) NOT NULL COMMENT '会员价格',
+    duration INT COMMENT '会员时长（天）',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    is_deleted CHAR(1) DEFAULT '0' COMMENT '逻辑删除标志: 0-未删除, 1-已删除'
+) COMMENT='会员等级表';
+
+CREATE TABLE user_payment_record (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT COMMENT '用户ID',
+    membership_level_id BIGINT COMMENT '关联会员等级ID',
+    payment_amount DECIMAL(10, 2) NOT NULL COMMENT '支付金额',
+    payment_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '支付时间',
+    expiry_date TIMESTAMP COMMENT '会员过期时间',
+    FOREIGN KEY (user_id) REFERENCES user(id),
+    FOREIGN KEY (membership_level_id) REFERENCES membership_level(id),
+    is_deleted CHAR(1) DEFAULT '0' COMMENT '逻辑删除标志: 0-未删除, 1-已删除'
+) COMMENT='用户付费记录表';
+
