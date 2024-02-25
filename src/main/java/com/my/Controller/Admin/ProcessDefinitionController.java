@@ -1,5 +1,6 @@
 package com.my.Controller.Admin;
 
+import com.my.Annotation.Log;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -21,7 +22,7 @@ public class ProcessDefinitionController {
 
     // Operation 注解设置了接口名称, 接口描述
 
-
+@Log(op = "1")
     @Operation(summary = "查询单个 bpmn xml 数据")
     @GetMapping("/bpmn-xml")
     public String findBpmnXml(
